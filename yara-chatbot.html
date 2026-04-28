@@ -414,20 +414,25 @@ async function sendMsg() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         system: SYSTEM_PROMPT,
         messages: history
       })
     });
     const data = await res.json();
-    const reply = data.content?.map(c => c.text || '').join('') || 'Sorry, I had trouble responding. Please try again.';
-    typing.remove();
-    addMsg('bot', reply);
-    history.push({ role: 'assistant', content: reply });
+    if (data.error) {
+      typing.remove();
+      addMsg('bot', 'API error: ' + (data.error.message || JSON.stringify(data.error)));
+    } else {
+      const reply = data.content?.map(c => c.text || '').join('') || 'Sorry, I had trouble responding. Please try again.';
+      typing.remove();
+      addMsg('bot', reply);
+      history.push({ role: 'assistant', content: reply });
+    }
   } catch(e) {
     typing.remove();
-    addMsg('bot', 'Something went wrong. Please try again.');
+    addMsg('bot', 'Network error: ' + e.message);
   }
   btn.disabled = false;
   input.focus();
