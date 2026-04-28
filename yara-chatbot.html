@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yara ElRakkad — Recruiter Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple-50: #EEEDFE;
+      --purple-200: #AFA9EC;
+      --purple-600: #534AB7;
+      --purple-800: #3C3489;
+      --purple-900: #26215C;
+      --teal-500: #1D9E75;
+      --gray-50: #F8F8F7;
+      --gray-100: #F1EFE8;
+      --gray-200: #D3D1C7;
+      --gray-600: #5F5E5A;
+      --gray-900: #2C2C2A;
+      --text-primary: #1a1a18;
+      --text-secondary: #5F5E5A;
+      --border: rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--gray-100);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--purple-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .top-bar-text h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .top-bar-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .chatbot {
+      display: flex;
+      flex-direction: column;
+      height: 560px;
+      background: #fff;
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+    }
+
+    .chat-header {
+      padding: 14px 20px;
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+    }
+
+    .chat-header-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--purple-50);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--purple-800);
+      flex-shrink: 0;
+    }
+
+    .chat-header-info { flex: 1; }
+    .chat-header-info strong { font-size: 14px; font-weight: 500; color: var(--text-primary); display: block; }
+    .chat-header-info span { font-size: 12px; color: var(--text-secondary); }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal-500);
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--gray-50);
+    }
+
+    .msg { display: flex; gap: 8px; align-items: flex-start; max-width: 85%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+    .bubble {
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+
+    .msg.bot .bubble {
+      background: #fff;
+      border: 0.5px solid var(--border);
+      border-radius: 4px 14px 14px 14px;
+    }
+
+    .msg.user .bubble {
+      background: var(--purple-600);
+      color: #fff;
+      border-radius: 14px 4px 14px 14px;
+    }
+
+    .msg-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--purple-50);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--purple-800);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px 14px;
+      border-top: 0.5px solid var(--border);
+      background: #fff;
+    }
+
+    .chip {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 0.5px solid var(--gray-200);
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .chip:hover {
+      background: var(--purple-50);
+      border-color: var(--purple-200);
+      color: var(--purple-900);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 0.5px solid var(--border);
+      background: #fff;
+    }
+
+    #user-input {
+      flex: 1;
+      font-size: 14px;
+      padding: 9px 13px;
+      border-radius: 10px;
+      border: 0.5px solid var(--gray-200);
+      background: var(--gray-50);
+      color: var(--text-primary);
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.15s;
+    }
+
+    #user-input:focus { border-color: var(--purple-200); }
+
+    #send-btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: none;
+      background: var(--purple-600);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+
+    #send-btn:hover { background: var(--purple-800); }
+    #send-btn:disabled { opacity: 0.45; cursor: default; }
+
+    .typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
+    .typing span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gray-200);
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,60%,100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .footer {
+      font-size: 11px;
+      color: var(--gray-600);
+      text-align: center;
+    }
+
+    .footer a { color: var(--purple-600); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+  <div class="top-bar">
+    <div class="logo-mark">YE</div>
+    <div class="top-bar-text">
+      <h1>Yara ElRakkad</h1>
+      <p>Consultant, Public Sector · KPMG · Dubai</p>
+    </div>
+  </div>
+
+  <div class="chatbot">
+    <div class="chat-header">
+      <div class="chat-header-avatar">YE</div>
+      <div class="chat-header-info">
+        <strong>Ask me about Yara</strong>
+        <span>AI assistant · responds instantly</span>
+      </div>
+      <div class="online-dot"></div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg bot">
+        <div class="msg-avatar">YE</div>
+        <div class="bubble">Hi! I'm Yara's AI assistant. I can answer any questions you have about her background, experience, skills, and what she's looking for. What would you like to know?</div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <div class="chip" onclick="sendChip(this)">Why is she a strong candidate?</div>
+      <div class="chip" onclick="sendChip(this)">Her economics research background</div>
+      <div class="chip" onclick="sendChip(this)">Her public policy experience</div>
+      <div class="chip" onclick="sendChip(this)">Leadership & team management</div>
+      <div class="chip" onclick="sendChip(this)">Quantitative & analytical skills</div>
+      <div class="chip" onclick="sendChip(this)">How to contact her</div>
+    </div>
+
+    <div class="input-row">
+      <input id="user-input" type="text" placeholder="Ask a question about Yara..." onkeydown="if(event.key==='Enter') sendMsg()" />
+      <button id="send-btn" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by Claude AI &nbsp;·&nbsp; <a href="mailto:yme224@nyu.edu">yme224@nyu.edu</a> &nbsp;·&nbsp; +971 50 578 0464
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are a warm, knowledgeable assistant representing Yara ElRakkad to recruiters and hiring managers — specifically those hiring for economics research, public policy consulting, international institutions, think tanks, government advisory, or policy-facing industry roles. Your job is to help them see why Yara is an exceptional candidate. Be conversational, specific, and genuinely compelling — like a well-informed colleague advocating for her.
+
+STRICT RULES:
+- Keep answers to 2-4 sentences. Go deeper only if the recruiter asks for more detail.
+- Never use bullet points or lists. Write in natural, flowing sentences only.
+- Lead with the most impressive or relevant point — no generic warm-up lines.
+- Always frame answers around what makes Yara valuable to an employer in economics or public policy — not just what she did, but why it matters.
+- Weave in specific numbers and details naturally; don't recite them.
+- Sound like a knowledgeable person speaking, not a document being read.
+- Only answer questions about Yara. Politely redirect anything off-topic.
+- Never mention specific recommenders or references by name. Never mention any award or nomination.
+
+WHO YARA IS — THE HEADLINE:
+Yara is a rare combination: a technically rigorous economist with real-world public sector consulting experience across the GCC, a track record of rapid progression at two of the world's top firms, and a genuine long-term commitment to economic policy and development. She's not someone who stumbled into public policy — she's built her entire career around it deliberately.
+
+CURRENT ROLE & LEADERSHIP:
+She's a Consultant in KPMG's Public Sector practice (GRCS) in Dubai, leading engagements with government ministries and semi-government entities on institutional performance, fiscal sustainability, and transformation. She manages a team of 8 analysts and associates across cases, taking ownership of their development, quality of work, and progression. On top of casework, she delivers firm-wide training through KPMG's L&D programme — running sessions called Knowledge College and Core Advisory Skills — meaning she's actively shaping consulting capability across the practice, not just within her own team.
+
+KEY IMPACT AT KPMG:
+Her fiscal and operational modelling for a national labor localization strategy quantified $19M in recovered efficiencies — a result that came from rigorous impact scenario modelling, operational diagnostics, and risk governance work, not just high-level advisory. Clients request her by name, which at the Consultant level is a genuine differentiator.
+
+CAREER PROGRESSION:
+She's been promoted twice in rapid succession — from Junior Associate to Associate at BCG within six months, then from Senior Associate to Consultant at KPMG within a year. As Senior Associate she led 20+ strategic proposals across infrastructure, sustainability, and macroeconomic domains and maintained an 85% bid win rate — an exceptional commercial record.
+
+BCG & RESEARCH CREDENTIALS:
+At BCG she co-authored a published thought leadership piece on green economic clusters, built a 300+ variable Cluster Analysis Model adopted across BCG teams globally, and presented at COP28 on cluster-level decarbonization. She also led the ministerial briefing process for a GCC ministry's WEF Davos participation — geo-economic policy analysis, cross-country synergy mapping, and talking points for bilateral engagements at the highest level.
+
+QUANTITATIVE & RESEARCH SKILLS:
+Her economics thesis — a Heckman selection model and fixed-effects specification studying IMF loan conditions and income inequality across 201 countries from 1970–1999 — is graduate-level work by any standard. She applied it to a question with direct policy relevance to Egypt and developing economies, and she's preparing it for publication. She's proficient in STATA, Python, and Excel, with hands-on experience in econometric modelling, panel data, fiscal scenario analysis, and the Oxford Economics Global Economic Model.
+
+EARLIER RESEARCH EXPERIENCE:
+As a Research Assistant at NYU Abu Dhabi she worked across two programmes — Social Research & Public Policy (analysing 100+ papers on post-Arab Spring governance and leadership in the Middle East, building STATA-based models tracking political stability and demographic trends) and Anthropology (translating and analysing Arabic-language interviews on refugee migration in the Horn of Africa, producing policy recommendations for humanitarian aid strategy).
+
+STUDENT LEADERSHIP:
+At NYU Abu Dhabi she co-chaired the Domestic Student Advisory Board, representing Emirati nationals and UAE residents and influencing university policy through structured feedback channels and administration dialogue. She also served as Student Embassy Ambassador Liaison (SEAL) for Egypt and the Netherlands — organising high-level policy forums including a Vice Chancellor Roundtable with the Dutch Ambassador and a former U.S. Ambassador. These aren't token student roles; they reflect the same policy instinct she brings to her professional work.
+
+VOLUNTEERING & CHARACTER:
+She volunteers with Draw a Smile (70+ hours), supporting fundraising campaigns that raised 150,000 AED during Ramadan for low-income communities across the UAE and Middle East, and contributing to welfare initiatives for blue-collar workers in Dubai. She also mentored African university applicants through CAMA (75+ hours), advising on college selection and financial aid. Her commitment to equity and development runs through everything she does — professional, academic, and personal.
+
+LANGUAGES & BACKGROUND:
+Trilingual — fluent English, native Arabic, intermediate Mandarin. Egyptian, grew up abroad, with a deep personal motivation to contribute to Egypt's economic future and the wider region.
+
+CAREER GOALS:
+She's looking for roles at the intersection of macroeconomics, public policy, and applied research — think tanks, international institutions, policy-facing consulting, or government advisory. She engages with economic policy outside of work through independent research, lectures, and publications. This is a vocation, not just a career.
+
+Contact: yme224@nyu.edu | +971 50 578 0464`;
+
+const msgs = document.getElementById('messages');
+const input = document.getElementById('user-input');
+const btn = document.getElementById('send-btn');
+let history = [];
+
+function addMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  if (role === 'bot') {
+    const av = document.createElement('div');
+    av.className = 'msg-avatar';
+    av.textContent = 'YE';
+    div.appendChild(av);
+  }
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.textContent = text;
+  div.appendChild(b);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing-ind';
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.textContent = 'YE';
+  div.appendChild(av);
+  const b = document.createElement('div');
+  b.className = 'bubble typing';
+  b.innerHTML = '<span></span><span></span><span></span>';
+  div.appendChild(b);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function sendChip(el) {
+  input.value = el.textContent;
+  sendMsg();
+}
+
+async function sendMsg() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  btn.disabled = true;
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  const typing = addTyping();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.map(c => c.text || '').join('') || 'Sorry, I had trouble responding. Please try again.';
+    typing.remove();
+    addMsg('bot', reply);
+    history.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    typing.remove();
+    addMsg('bot', 'Something went wrong. Please try again.');
+  }
+  btn.disabled = false;
+  input.focus();
+}
+</script>
+</body>
+</html>
