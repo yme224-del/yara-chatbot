@@ -273,7 +273,7 @@
 
 <div class="page-wrapper">
   <div class="top-bar">
-    <div class="logo-mark"><img src="photo.jpg" alt="Yara ElRakkad" /></div>
+    <div class="logo-mark">YE</div>
     <div class="top-bar-text">
       <h1>Yara ElRakkad</h1>
       <p>Consultant, Public Sector · KPMG · Dubai</p>
@@ -282,7 +282,7 @@
 
   <div class="chatbot">
     <div class="chat-header">
-      <div class="chat-header-avatar"><img src="photo.jpg" alt="Yara" /></div>
+      <div class="chat-header-avatar">YE</div>
       <div class="chat-header-info">
         <strong>Ask me about Yara</strong>
         <span>AI assistant · responds instantly</span>
@@ -292,7 +292,7 @@
 
     <div class="messages" id="messages">
       <div class="msg bot">
-        <div class="msg-avatar"><img src="photo.jpg" alt="Yara" /></div>
+        <div class="msg-avatar">YE</div>
         <div class="bubble">Hi — I'm Yara. Happy to answer any questions you have about my background, experience, or what I'm looking for. What would you like to know?</div>
       </div>
     </div>
@@ -414,7 +414,7 @@ function addMsg(role, text) {
   if (role === 'bot') {
     const av = document.createElement('div');
     av.className = 'msg-avatar';
-    av.innerHTML = '<img src="photo.jpg" alt="Yara" />';
+    av.textContent = 'YE';
     div.appendChild(av);
   }
   const b = document.createElement('div');
