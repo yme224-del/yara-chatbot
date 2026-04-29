@@ -13,6 +13,15 @@ app.get('/', (req, res) => {
 
 app.post('/chat', async (req, res) => {
   try {
+    const { messages } = req.body;
+
+    // Log the latest user message
+    const latestUser = messages && messages[messages.length - 1];
+    if (latestUser && latestUser.role === 'user') {
+      console.log(`\n--- [${new Date().toISOString()}] ---`);
+      console.log(`USER: ${latestUser.content}`);
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -24,6 +33,13 @@ app.post('/chat', async (req, res) => {
     });
 
     const data = await response.json();
+
+    // Log the bot's reply
+    if (data.content) {
+      const reply = data.content.map(c => c.text || '').join('');
+      console.log(`BOT: ${reply}`);
+    }
+
     res.json(data);
   } catch (err) {
     console.error(err);
